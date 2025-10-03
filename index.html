@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Collection</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Topic Selection Page Styles */
+        .topic-selection {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .topic-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 80px;
+        }
+
+        .topic-header h1 {
+            font-size: 4em;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+        }
+
+        .topic-header p {
+            font-size: 1.4em;
+            opacity: 0.9;
+        }
+
+        .topics-container {
+            display: flex;
+            gap: 50px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 1200px;
+        }
+
+        .topic-card {
+            width: 350px;
+            height: 450px;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            position: relative;
+        }
+
+        .topic-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+        }
+
+        .topic-card-image {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .topic-card-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.2) 100%);
+        }
+
+        .topic-card-content {
+            padding: 30px;
+        }
+
+        .topic-card h2 {
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .topic-card p {
+            font-size: 1.1em;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .topic-card .story-count {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        /* Stories List Page Styles */
+        .stories-page {
+            display: none;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+        }
+
+        .stories-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .stories-header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .back-to-topics {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            margin-bottom: 30px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .back-to-topics:hover {
+            background: white;
+        }
+
+        .stories-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            padding: 20px;
+        }
+
+        .story-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .story-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .story-card-content {
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .story-thumbnail {
+            width: 100px;
+            height: 100px;
+            flex-shrink: 0;
+            border-radius: 8px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2em;
+        }
+
+        .story-info {
+            flex: 1;
+        }
+
+        .story-title {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .story-summary {
+            font-size: 0.95em;
+            color: #666;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Story Page Styles */
+        .story-page {
+            display: none;
+            min-height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: relative;
+        }
+
+        .story-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .story-container {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .back-button {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            margin-bottom: 30px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: white;
+        }
+
+        .story-content {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 50px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .story-content h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        .story-text {
+            font-size: 1.1em;
+            line-height: 1.8;
+            color: #444;
+            text-align: justify;
+        }
+
+        .story-text p {
+            margin-bottom: 20px;
+        }
+
+        .story-text h1, .story-text h2, .story-text h3 {
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .story-text h2 {
+            font-size: 1.8em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .story-text h3 {
+            font-size: 1.4em;
+        }
+
+        .story-text blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 20px;
+            margin: 20px 0;
+            font-style: italic;
+            color: #555;
+        }
+
+        .story-text ul, .story-text ol {
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+
+        .story-text code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .story-text pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            padding: 20px;
+            border-radius: 5px;
+            color: #c33;
+        }
+
+        @media (max-width: 768px) {
+            .topic-header h1 {
+                font-size: 2.5em;
+            }
+
+            .topics-container {
+                gap: 30px;
+            }
+
+            .topic-card {
+                width: 100%;
+                max-width: 400px;
+            }
+
+            .stories-header h1 {
+                font-size: 2em;
+            }
+
+            .stories-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .story-content {
+                padding: 30px 25px;
+            }
+
+            .story-content h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Topic Selection Page -->
+    <div id="topicSelection" class="topic-selection">
+        <div class="topic-header">
+            <h1>📚 Story Collection 📚</h1>
+            <p>Choose your adventure</p>
+        </div>
+
+        <div class="topics-container" id="topicsContainer">
+            <!-- Topic cards will be generated here -->
+        </div>
+    </div>
+
+    <!-- Stories List Page -->
+    <div id="storiesPage" class="stories-page">
+        <div class="stories-header">
+            <a href="#" class="back-to-topics" onclick="showTopicSelection(); return false;">← Back to Topics</a>
+            <h1 id="topicTitle">Stories</h1>
+        </div>
+        <div class="stories-grid" id="storiesGrid">
+            <!-- Story cards will be generated here -->
+        </div>
+    </div>
+
+    <!-- Story Pages (generated dynamically) -->
+    <div id="storyPages"></div>
+
+    <script>
+        // ========================================
+        // EASY CONFIGURATION SECTION
+        // ========================================
+        
+        // TOPICS: Define your story categories here
+        const topics = [
+            {
+                id: "fantasy",
+                name: "Fantasy",
+                icon: "🧙‍♂️",
+                description: "Embark on magical journeys filled with dragons, wizards, and enchanted realms where anything is possible.",
+                gradient: "linear-gradient(135deg, #834d9b 0%, #d04ed6 100%)"
+            },
+            {
+                id: "scifi",
+                name: "Science Fiction",
+                icon: "🚀",
+                description: "Explore distant galaxies, advanced technologies, and the endless possibilities of the future.",
+                gradient: "linear-gradient(135deg, #4b6cb7 0%, #182848 100%)"
+            },
+            {
+                id: "mystery",
+                name: "Mystery",
+                icon: "🔍",
+                description: "Unravel complex puzzles and follow clues through suspenseful tales of intrigue and deduction.",
+                gradient: "linear-gradient(135deg, #232526 0%, #414345 100%)"
+            },
+            {
+                id: "horror",
+                name: "Horror",
+                icon: "👻",
+                description: "Experience spine-tingling tales that will keep you up at night and questioning every shadow.",
+                gradient: "linear-gradient(135deg, #2c3e50 0%, #3498db 100%)"
+            }
+        ];
+        
+        // STORIES: Add your stories here
+        // Now you can either:
+        // 1. Use 'file' property to load from a markdown/text file in the 'stories' folder
+        // 2. Use 'content' property for inline HTML content (old method)
+        const stories = [
+            {
+                id: 1,
+                title: "The Midnight Garden",
+                topic: "fantasy",
+                summary: "A young girl discovers a magical garden that only appears at midnight, where flowers sing and trees tell ancient stories.",
+                thumbnail: "🌺",
+                background: "linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%)",
+                file: "stories/midnight-garden.md"  // NEW: Load from file
+            },
+            {
+                id: 2,
+                title: "The Last Dragon Keeper",
+                topic: "fantasy",
+                summary: "In a world where dragons are thought to be extinct, a young apprentice discovers the last dragon egg and must protect it from those who would destroy it.",
+                thumbnail: "🐉",
+                background: "linear-gradient(135deg, #cb2d3e 0%, #ef473a 50%, #ffd700 100%)",
+                file: "stories/dragon-keeper.md"  // NEW: Load from file
+            },
+            {
+                id: 3,
+                title: "Echoes of the Forgotten City",
+                topic: "scifi",
+                summary: "An archaeologist uncovers a city that exists simultaneously in the past and present, where the inhabitants don't realize time has moved forward.",
+                thumbnail: "🏛️",
+                background: "linear-gradient(135deg, #134e5e 0%, #71b280 50%, #a8e6cf 100%)",
+                file: "stories/forgotten-city.md"  // NEW: Load from file
+            },
+            {
+                id: 4,
+                title: "The Quantum Thief",
+                topic: "scifi",
+                summary: "A master thief discovers she can steal moments in time itself, but each theft creates dangerous paradoxes that threaten reality.",
+                thumbnail: "⏰",
+                background: "linear-gradient(135deg, #000000 0%, #434343 50%, #0f9b0f 100%)",
+                file: "stories/quantum-thief.md"  // NEW: Load from file
+            },
+            {
+                id: 5,
+                title: "The Locked Room",
+                topic: "mystery",
+                summary: "A detective must solve an impossible murder in a room locked from the inside, with no apparent way for the killer to escape.",
+                thumbnail: "🔐",
+                background: "linear-gradient(135deg, #3a1c71 0%, #d76d77 50%, #ffaf7b 100%)",
+                file: "stories/locked-room.md"  // NEW: Load from file
+            },
+            // EXAMPLE: Using inline content (old method still works)
+            {
+                id: 6,
+                title: "Example Inline Story",
+                topic: "fantasy",
+                summary: "This story uses inline HTML content instead of a file.",
+                thumbnail: "📖",
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                content: `
+                    <p>This is an example of using inline content instead of loading from a file.</p>
+                    <p>You can still use this method if you prefer!</p>
+                `
+            }
+        ];
+        
+        // ========================================
+        // END OF EASY CONFIGURATION
+        // ========================================
+
+        let currentTopic = '';
+
+        // Load story content from file
+        async function loadStoryContent(story) {
+            if (story.content) {
+                // If content is provided inline, use it directly
+                return story.content;
+            }
+            
+            if (story.file) {
+                try {
+                    const response = await fetch(story.file);
+                    if (!response.ok) {
+                        throw new Error(`Failed to load story: ${response.statusText}`);
+                    }
+                    const text = await response.text();
+                    
+                    // Check if it's markdown (by file extension)
+                    if (story.file.endsWith('.md') || story.file.endsWith('.markdown')) {
+                        return marked.parse(text);
+                    } else {
+                        // Plain text - wrap in paragraphs
+                        return text.split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+                    }
+                } catch (error) {
+                    console.error('Error loading story:', error);
+                    return `<div class="error">
+                        <h3>Error Loading Story</h3>
+                        <p>Could not load story file: ${story.file}</p>
+                        <p>Make sure the file exists in the correct location.</p>
+                        <p><strong>Tip:</strong> Create a "stories" folder and place your story files there.</p>
+                    </div>`;
+                }
+            }
+            
+            return '<p>No content available.</p>';
+        }
+
+        // Generate topic cards dynamically
+        function createTopicCards() {
+            const container = document.getElementById('topicsContainer');
+            container.innerHTML = '';
+            
+            topics.forEach(topic => {
+                const storyCount = stories.filter(s => s.topic === topic.id).length;
+                
+                const card = document.createElement('div');
+                card.className = 'topic-card';
+                card.onclick = () => showStoriesByTopic(topic.id);
+                
+                card.innerHTML = `
+                    <div class="topic-card-image" style="background: ${topic.gradient}">
+                        ${topic.icon}
+                    </div>
+                    <div class="topic-card-content">
+                        <h2>${topic.name}</h2>
+                        <p>${topic.description}</p>
+                        <span class="story-count">${storyCount} ${storyCount === 1 ? 'Story' : 'Stories'}</span>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        // Show stories by topic
+        function showStoriesByTopic(topic) {
+            currentTopic = topic;
+            const topicObj = topics.find(t => t.id === topic);
+            const topicName = topicObj ? topicObj.name : topic;
+            document.getElementById('topicTitle').textContent = topicName + ' Stories';
+            
+            const filteredStories = stories.filter(s => s.topic === topic);
+            createStoryCards(filteredStories);
+            
+            document.getElementById('topicSelection').style.display = 'none';
+            document.getElementById('storiesPage').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        // Generate story cards
+        function createStoryCards(storiesToShow) {
+            const grid = document.getElementById('storiesGrid');
+            grid.innerHTML = '';
+            
+            storiesToShow.forEach(story => {
+                const card = document.createElement('div');
+                card.className = 'story-card';
+                card.onclick = () => showStory(story.id);
+                
+                card.innerHTML = `
+                    <div class="story-card-content">
+                        <div class="story-thumbnail">${story.thumbnail}</div>
+                        <div class="story-info">
+                            <div class="story-title">${story.title}</div>
+                            <div class="story-summary">${story.summary}</div>
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // Generate story pages
+        function createStoryPages() {
+            const container = document.getElementById('storyPages');
+            stories.forEach(story => {
+                const page = document.createElement('div');
+                page.id = `story-${story.id}`;
+                page.className = 'story-page';
+                page.style.background = story.background;
+                
+                page.innerHTML = `
+                    <div class="story-container">
+                        <a href="#" class="back-button" onclick="showStoriesPage(); return false;">← Back to Stories</a>
+                        <div class="story-content">
+                            <h1>${story.title}</h1>
+                            <div class="story-text" id="story-text-${story.id}">
+                                <div class="loading">Loading story...</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(page);
+            });
+        }
+
+        // Navigation functions
+        function showTopicSelection() {
+            document.getElementById('storiesPage').style.display = 'none';
+            document.querySelectorAll('.story-page').forEach(page => {
+                page.style.display = 'none';
+            });
+            document.getElementById('topicSelection').style.display = 'flex';
+            window.scrollTo(0, 0);
+        }
+
+        function showStoriesPage() {
+            document.querySelectorAll('.story-page').forEach(page => {
+                page.style.display = 'none';
+            });
+            showStoriesByTopic(currentTopic);
+        }
+
+        async function showStory(id) {
+            document.getElementById('storiesPage').style.display = 'none';
+            document.querySelectorAll('.story-page').forEach(page => {
+                page.style.display = 'none';
+            });
+            
+            const storyPage = document.getElementById(`story-${id}`);
+            storyPage.style.display = 'block';
+            
+            // Load story content if not already loaded
+            const contentDiv = document.getElementById(`story-text-${id}`);
+            if (contentDiv.querySelector('.loading')) {
+                const story = stories.find(s => s.id === id);
+                const content = await loadStoryContent(story);
+                contentDiv.innerHTML = content;
+            }
+            
+            window.scrollTo(0, 0);
+        }
+
+        // Initialize
+        createTopicCards();
+        createStoryPages();
+    </script>
+</body>
+</html>
